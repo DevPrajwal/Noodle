@@ -19,6 +19,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Timer;
+import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Animation;
@@ -441,18 +442,21 @@ public class MainGame extends Game {
 		Stage mainMenu;
 		Stage customization;
 		Stage settings;
+		Stage rules;
 		Animation<TextureRegion> beachAnim;
 		float noodle0Speed = 0.25f;
 		Image noodle0;
 		Image skin0;
 		Stage currentStage;
 		Image background;
+		float scrollPaneHeight;
 		
 		public MainMenu(final Game game){
 			this.game = game;
 			mainMenu = new Stage(screenViewport);
 			customization = new Stage(screenViewport);
 			settings = new Stage(screenViewport);
+			rules = new Stage(screenViewport);
 						
 					Image NOODLE = new Image(new TextureRegionDrawable(assetManager.get("logo_text.png", Texture.class)));
 					TextButtonDown continueGame = new TextButtonDown("PLAY", textButtonStyle);
@@ -553,10 +557,14 @@ public class MainGame extends Game {
 							public void clicked(InputEvent event, float x, float y) {
 								if(SOUND.isChecked())assetManager.get("select.wav", Sound.class).play(0.5f);
 								for(int j=0;j<skins.length;j++)
+								{
 									skins[j].setDrawable(new TextureRegionDrawable(assetManager.get("skin"+String.valueOf(j)+".bmp", Texture.class)));
+									skins[j].setSize(scrollPaneHeight*skins[j].getWidth()/skins[j].getHeight(), scrollPaneHeight);
+								}
 								skinSelected = iFinal;
 								skin0.setDrawable(skins[skinSelected].getDrawable());
 								skins[skinSelected].setDrawable(new TextureRegionDrawable(assetManager.get("skin"+String.valueOf(iFinal)+"_selected.bmp", Texture.class)));
+								skins[skinSelected].setSize(scrollPaneHeight*skins[skinSelected].getWidth()/skins[skinSelected].getHeight(), scrollPaneHeight);
 							}
 						});
 					}
@@ -573,10 +581,14 @@ public class MainGame extends Game {
 							public void clicked(InputEvent event, float x, float y) {
 								if(SOUND.isChecked())assetManager.get("select.wav", Sound.class).play(0.5f);
 								for(int j=0;j<noodles.length;j++)
+								{
 									noodles[j].setDrawable(new TextureRegionDrawable(assetManager.get("noodle"+String.valueOf(j)+".bmp", Texture.class)));
+									noodles[j].setSize(scrollPaneHeight*noodles[j].getWidth()/noodles[j].getHeight(), scrollPaneHeight);
+								}
 								noodleSelected = iFinal;
 								noodle0.setDrawable(noodles[noodleSelected].getDrawable());
 								noodles[noodleSelected].setDrawable(new TextureRegionDrawable(assetManager.get("noodle"+String.valueOf(iFinal)+"_selected.bmp", Texture.class)));
+								noodles[noodleSelected].setSize(scrollPaneHeight*noodles[noodleSelected].getWidth()/noodles[noodleSelected].getHeight(), scrollPaneHeight);
 							}
 						});
 					}
@@ -585,18 +597,18 @@ public class MainGame extends Game {
 					characterWindow.setSize(windowNoTitleSize, windowNoTitleSize);
 					equipDown.setSize(buttonTextWidth, buttonTextHeight);
 					SKIN.setSize(buttonTextWidth, buttonTextHeight);
-					float scrollPaneHeight = (windowNoTitleSize-SKIN.getHeight()-equipDown.getHeight())/2;
-					scrollPane.setSize(windowNoTitleSize*90/100, scrollPaneHeight*118/100);
+					scrollPaneHeight = (windowNoTitleSize-SKIN.getHeight()-equipDown.getHeight())/2*118/100;
+					scrollPane.setSize(windowNoTitleSize*90/100, scrollPaneHeight);
 					for(int i=0;i<skins.length;i++)
 					{
-						skins[i].setSize(scrollPane.getHeight()*assetManager.get("skin0.bmp", Texture.class).getWidth()/assetManager.get("skin0.bmp", Texture.class).getHeight(), scrollPane.getHeight());
-						table.add(skins[i]);
+						skins[i].setSize(scrollPaneHeight*skins[i].getWidth()/skins[i].getHeight(), scrollPaneHeight);
+						table.add(skins[i]).width(skins[i].getWidth()).height(skins[i].getHeight());
 					}
-					scrollPane0.setSize(windowNoTitleSize*90/100, scrollPaneHeight*118/100);
+					scrollPane0.setSize(windowNoTitleSize*90/100, scrollPaneHeight);
 					for(int i=0;i<noodles.length;i++)
 					{
-						noodles[i].setSize(scrollPane0.getHeight()*assetManager.get("noodle0.bmp", Texture.class).getWidth()/assetManager.get("noodle0.bmp", Texture.class).getHeight(), scrollPane0.getHeight());
-						table0.add(noodles[i]);
+						noodles[i].setSize(scrollPaneHeight*noodles[i].getWidth()/noodles[i].getHeight(), scrollPaneHeight);
+						table0.add(noodles[i]).width(noodles[i].getWidth()).height(noodles[i].getHeight());
 					}
 					
 					customization.addActor(blackTransparentScreen);
@@ -635,9 +647,15 @@ public class MainGame extends Game {
 						public void clicked(InputEvent event, float x, float y) {
 							
 								for(int j=0;j<skins.length;j++)
+								{
 									skins[j].setDrawable(new TextureRegionDrawable(assetManager.get("skin"+String.valueOf(j)+".bmp", Texture.class)));
+									skins[j].setSize(scrollPaneHeight*skins[j].getWidth()/skins[j].getHeight(), scrollPaneHeight);
+								}
 								for(int j=0;j<noodles.length;j++)
+								{
 									noodles[j].setDrawable(new TextureRegionDrawable(assetManager.get("noodle"+String.valueOf(j)+".bmp", Texture.class)));
+									noodles[j].setSize(scrollPaneHeight*noodles[j].getWidth()/noodles[j].getHeight(), scrollPaneHeight);
+								}
 							
 							skin0.setDrawable(skins[skinIndex].getDrawable());
 							noodle0.setDrawable(noodles[noodleIndex].getDrawable());
@@ -664,6 +682,14 @@ public class MainGame extends Game {
 					blackTransparentScreenFull.setSize(Gdx.graphics.getHeight()*blackTransparentScreenFull.getWidth()/blackTransparentScreenFull.getHeight(), Gdx.graphics.getHeight());
 					settingsWindow.setSize(windowNoTitleSize, windowNoTitleSize);
 					closeDownS.setSize(buttonImageWidth, buttonImageWidth);
+					SOUND.getImage().setScaling(Scaling.fill);
+					SOUND.getImageCell().size(buttonTextHeight/2);
+					SOUND.left().pad(0);
+					SOUND.getLabelCell().left().pad(buttonTextHeight/4);
+					TILT.getImage().setScaling(Scaling.fill);
+					TILT.getImageCell().size(buttonTextHeight/2);
+					TILT.left().pad(0);
+					TILT.getLabelCell().left().pad(buttonTextHeight/4);
 					
 					settings.addActor(blackTransparentScreenFull);
 					blackTransparentScreenFull.setPosition(0, 0);
@@ -672,12 +698,48 @@ public class MainGame extends Game {
 					settings.addActor(SETTINGS);
 					SETTINGS.setPosition(settingsWindow.getX()+windowNoTitleSize/2-SETTINGS.getWidth()/2, settingsWindow.getY()+windowNoTitleSize-SETTINGS.getHeight()-windowNoTitlePadding);
 					settings.addActor(SOUND);
-					SOUND.setPosition(settingsWindow.getX()+windowNoTitlePadding, SETTINGS.getY()-SOUND.getHeight()*2);
+					SOUND.setPosition(settingsWindow.getX()+windowNoTitlePadding, SETTINGS.getY()-buttonTextHeight*4/3);
 					settings.addActor(TILT);
-					TILT.setPosition(settingsWindow.getX()+windowNoTitlePadding, SOUND.getY()-TILT.getHeight()*2);
+					TILT.setPosition(settingsWindow.getX()+windowNoTitlePadding, SOUND.getY()-buttonTextHeight);
 					settings.addActor(closeDownS);
 					closeDownS.setPosition(settingsWindow.getX()+windowNoTitleSize-buttonImageWidth/2, settingsWindow.getY()+windowNoTitleSize-buttonImageWidth*75/100);
-					
+
+					Label.LabelStyle RULESStyle = new Label.LabelStyle();
+					RULESStyle.font = daySansMedium;
+					Label RULES = new Label("RULES", RULESStyle);
+					RULES.setAlignment(Align.center);
+					Label.LabelStyle rulesStyle = new Label.LabelStyle();
+					rulesStyle.font = daySansSmall;
+					Label rulesTxt = new Label("Mission Objective: Prevent Painful Injections – Save the Smiling Man!\n\nThe smiling man is at risk every time a red patch appears on his skin. These red patches indicate the need for an injection, and without intervention, the injection will be painfully administered. Noodle is his only hope for a pain-free solution. Your critical mission is to ensure Noodle reaches the red patch before the syringe does.\n\nMission Brief:\n\nIdentify the Target: As soon as a red patch appears on the smiling man's skin, it’s your signal to act.\n\nDeploy Noodle: Guide Noodle with precision towards the red patch. Speed is of the essence, but avoid any obstacles that could delay Noodle's mission.\n\nOutpace the Syringe: Ensure Noodle reaches the red patch first to neutralize the threat of pain.\n\nMission Success:\n\nComplete your mission by navigating Noodle to the red patch before the syringe, ensuring a pain-free injection for the smiling man. Your quick thinking and agile maneuvering are crucial to his comfort and well-being. Keep honing your skills to stay ahead in this high-stakes game!", rulesStyle);
+					ScrollPane rulesPane = new ScrollPane(rulesTxt);
+					Image rulesWindow = new Image(assetManager.get("window_no_title.png", Texture.class));
+					TextButtonDown okDown = new TextButtonDown("OK", textButtonStyle);
+
+					rulesWindow.setSize(windowNoTitleSize, windowNoTitleSize);
+					RULES.setSize(buttonTextWidth, buttonTextHeight);
+					okDown.setSize(buttonTextWidth, buttonTextHeight);
+					rulesTxt.setWidth(windowNoTitleSize*90/100);
+					rulesTxt.setWrap(true);
+					rulesPane.setSize(windowNoTitleSize*90/100, windowNoTitleSize-RULES.getHeight()-okDown.getHeight());
+
+					rules.addActor(blackTransparentScreenFull);
+					rules.addActor(rulesWindow);
+					rulesWindow.setPosition(Gdx.graphics.getWidth()/2-windowNoTitleSize/2, windowNoTitleSize*25/100/2);
+					rules.addActor(RULES);
+					RULES.setPosition(rulesWindow.getX()+windowNoTitleSize/2-buttonTextWidth/2, rulesWindow.getY()+windowNoTitleSize-buttonTextHeight);
+					rules.addActor(rulesPane);
+					rulesPane.setPosition(rulesWindow.getX()+(windowNoTitleSize-rulesPane.getWidth())/2, rulesWindow.getY()+okDown.getHeight());
+					rules.addActor(okDown);
+					okDown.setPosition(rulesWindow.getX()+windowNoTitleSize/2-buttonTextWidth/2, rulesWindow.getY());
+					okDown.addListener(new ClickListener(){
+						@Override
+						public void clicked(InputEvent event, float x, float y)
+						{
+							loadingGameScreen = new LoadingGame(game);
+							setScreen(loadingGameScreen);
+						}
+					});
+
 					SOUND.addListener(new ClickListener(){
 						@Override
 						public void clicked(InputEvent event, float x, float y)
@@ -701,8 +763,8 @@ public class MainGame extends Game {
 							//if(!username.equals(""))
 								if(loadingGameScreen==null)
 								{
-									loadingGameScreen = new LoadingGame(game);
-									setScreen(loadingGameScreen);
+									currentStage = rules;
+									Gdx.input.setInputProcessor(rules);
 								}else
 								{
 									gameScreen = new GameScreen(game);
@@ -725,7 +787,9 @@ public class MainGame extends Game {
 							if(SOUND.isChecked())assetManager.get("click.wav", Sound.class).play(0.5f);
 							currentStage = customization;
 							skins[skinIndex].setDrawable(new TextureRegionDrawable(assetManager.get("skin"+String.valueOf(skinIndex)+"_selected.bmp", Texture.class)));
+								skins[skinIndex].setSize(scrollPaneHeight*skins[skinIndex].getWidth()/skins[skinIndex].getHeight(), scrollPaneHeight);
 							noodles[noodleIndex].setDrawable(new TextureRegionDrawable(assetManager.get("noodle"+String.valueOf(noodleIndex)+"_selected.bmp", Texture.class)));
+								noodles[noodleIndex].setSize(scrollPaneHeight*noodles[noodleIndex].getWidth()/noodles[noodleIndex].getHeight(), scrollPaneHeight);
 							Gdx.input.setInputProcessor(customization);
 						}
 					});
