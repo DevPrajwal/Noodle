@@ -241,9 +241,6 @@ public class MainGame extends Game {
 					assetManager.load("button_image.png", Texture.class);
 					assetManager.load("button_image_down.png", Texture.class);
 					assetManager.load("loading0.png", Texture.class);
-					assetManager.load("loading1.png", Texture.class);
-					assetManager.load("loading2.png", Texture.class);
-					assetManager.load("loading3.png", Texture.class);
 					assetManager.load("on.png", Texture.class);
 					assetManager.load("off.png", Texture.class);
 					
@@ -368,6 +365,8 @@ public class MainGame extends Game {
 					assetManager.load("obstacle03.png", Texture.class);
 					assetManager.load("obstacle04.png", Texture.class);
 					assetManager.load("needle.png", Texture.class);
+					assetManager.load("play.png", Texture.class);
+					assetManager.load("pause.png", Texture.class);
 					assetManager.load("restart.png", Texture.class);
 					assetManager.load("home.png", Texture.class);
 					assetManager.load("plane_sound.wav", Sound.class);
@@ -535,7 +534,7 @@ public class MainGame extends Game {
 					noodle0.setPosition(noodle0.getWidth()/20, noodle0.getHeight()/4);
 					mainMenu.addActor(skin0);
 					skin0.setPosition(noodle0.getX(), noodle0.getY());
-					mPet.setPosition(newGame.getX()-mPet.getWidth()*4f/5f, 0);
+					mPet.setPosition(continueGame.getX()-mPet.getWidth()*4f/5f, 0);
 					mMan.setPosition(settingsDown.getX()-mMan.getWidth(), 0);
 					
 					Image blackTransparentScreen = new Image(assetManager.get("black_transparent_screen.png", Texture.class));
@@ -659,7 +658,7 @@ public class MainGame extends Game {
 							
 							skin0.setDrawable(skins[skinIndex].getDrawable());
 							noodle0.setDrawable(noodles[noodleIndex].getDrawable());
-							currentStage = mainMenu;
+							currentStage = null;
 							((AnimatedImage)mMan).animation.setFrameDuration(0.034f);
 							((AnimatedImage)mPet).animation.setFrameDuration(0.034f);
 							Gdx.input.setInputProcessor(mainMenu);
@@ -779,6 +778,7 @@ public class MainGame extends Game {
 						public void clicked(InputEvent event, float x, float y)
 						{
 							Gdx.app.exit();
+							Gdx.net.openURI("https://painless.world");
 						}
 					});
 					noodle0.addListener(new ClickListener(){
@@ -805,8 +805,8 @@ public class MainGame extends Game {
 						public void clicked(InputEvent event, float x, float y) {
 							((AnimatedImage)mMan).animation.setFrameDuration(0.034f);
 							((AnimatedImage)mPet).animation.setFrameDuration(0.034f);
-							currentStage = mainMenu;
-							Gdx.input.setInputProcessor(currentStage);
+							currentStage = null;
+							Gdx.input.setInputProcessor(mainMenu);
 						}
 					});
 		}
@@ -832,6 +832,7 @@ public class MainGame extends Game {
 		
 		public void show ()
 		{
+			currentStage = null;
 			Gdx.input.setInputProcessor(mainMenu);
 		}
 		
@@ -950,7 +951,7 @@ public class MainGame extends Game {
 			LOADING = new Label("LOADING 0%", loadingStyle);
 			TAP = new Label("TAP TO START", tapStyle);
 			TAP.setTouchable(Touchable.disabled);
-			backgrounds = new Image[4];
+			backgrounds = new Image[1];
 			for(int i=0;i<backgrounds.length;i++)
 				backgrounds[i] = new Image(new TextureRegionDrawable(assetManager.get("loading"+String.valueOf(i)+".png", Texture.class)));
 			loadingBar = new ProgressBar(0.0f, 1.0f, 0.01f, false, progressBarStyle);
@@ -961,7 +962,7 @@ public class MainGame extends Game {
 				backgrounds[i].setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 			loadingBar.setSize(Gdx.graphics.getWidth()*9f/10f, Gdx.graphics.getHeight()/100f);
 			
-			int i = MathUtils.random.nextInt(4);
+			int i = MathUtils.random.nextInt(backgrounds.length);
 			loading.addActor(backgrounds[i]);
 			loading.addActor(LOADING);
 			loading.addActor(loadingBar);
@@ -1110,8 +1111,13 @@ public class MainGame extends Game {
 		int dScore2 = 0;
 		Stage gameOver;
 		boolean isGameOver = false;
+		boolean paused = false;
+		ImageButtonDown pauseDown;
+		Image pause;
 		Image gameOverWindow;
 		ImageButtonDown restartDown;
+		Image resume;
+		ImageButtonDown resumeDown;
 		Image restart;
 		ImageButtonDown homeDown;
 		Image home;
@@ -1391,42 +1397,90 @@ public class MainGame extends Game {
 			}
 			city.setPosition(backgrounds[0][levelWidth-1].getX()+backgrounds[0][levelWidth-1].getWidth(), 0);
 			
+			pauseDown = new ImageButtonDown("button_image.png");
+			pause = new Image(new TextureRegionDrawable(assetManager.get("pause.png", Texture.class)));
+			pause.setTouchable(Touchable.disabled);restartDown = new ImageButtonDown("button_image.png");
 			gameOverWindow = new Image(new TextureRegionDrawable(assetManager.get("window_no_title.png", Texture.class)));
 			restartDown = new ImageButtonDown("button_image.png");
 			restart = new Image(new TextureRegionDrawable(assetManager.get("restart.png", Texture.class)));
-			restart.setTouchable(Touchable.disabled);
+			restart.setTouchable(Touchable.disabled);restartDown = new ImageButtonDown("button_image.png");
+			resumeDown = new ImageButtonDown("button_image.png");
+			resume = new Image(new TextureRegionDrawable(assetManager.get("play.png", Texture.class)));
+			resume.setTouchable(Touchable.disabled);
 			homeDown = new ImageButtonDown("button_image.png");
 			home = new Image(new TextureRegionDrawable(assetManager.get("home.png", Texture.class)));
 			home.setTouchable(Touchable.disabled);
 			Label.LabelStyle SKINStyle = new Label.LabelStyle();
 					SKINStyle.font = daySansMedium;
 					SCORE = new Label("Score : "+String.valueOf(0)+"\n", SKINStyle);
-					HSCORE = new Label("Server Highest : "+String.valueOf(serverHighest)+"\n", SKINStyle);
+					HSCORE = new Label(""/*"Server Highest : "+String.valueOf(serverHighest)+"\n"*/, SKINStyle);
 			Label.LabelStyle labelStyle = new Label.LabelStyle();
 					labelStyle.font = daySansLarge;
 					title = new Label("GAME OVER!\n", labelStyle);
 			
+					pauseDown.setSize(buttonImageWidth, buttonImageWidth);
+					pause.setSize(buttonImageWidth, buttonImageWidth);
 					gameOverWindow.setSize(windowNoTitleSize, windowNoTitleSize);
 					restartDown.setSize(buttonImageWidth, buttonImageWidth);
 					restart.setSize(buttonImageWidth, buttonImageWidth);
+					resumeDown.setSize(buttonImageWidth, buttonImageWidth);
+					resume.setSize(buttonImageWidth, buttonImageWidth);
 					homeDown.setSize(buttonImageWidth, buttonImageWidth);
 					home.setSize(buttonImageWidth, buttonImageWidth);
-		
-					gameOver.addActor(gameOverWindow);
-					gameOver.addActor(title);
-					gameOver.addActor(SCORE);
-					gameOver.addActor(HSCORE);
-					gameOver.addActor(restartDown);
-					gameOver.addActor(restart);
-					gameOver.addActor(homeDown);
-					gameOver.addActor(home);
-					
+
+					pauseDown.setPosition(Gdx.graphics.getWidth()-pauseDown.getWidth(), Gdx.graphics.getHeight()-pauseDown.getHeight());
+					pause.setPosition(pauseDown.getX(), pauseDown.getY());
+
+					gameOver.addActor(pauseDown);
+					gameOver.addActor(pause);
+
+					pauseDown.addListener(new ClickListener(){
+						@Override
+						public void clicked(InputEvent event, float x, float y)
+						{
+							isGameOver = true;
+							paused = true;
+
+							showGameOver();
+						}
+					});
+
 					restartDown.addListener(new ClickListener(){
 						@Override
 						public void clicked(InputEvent event, float x, float y)
 						{
 							gameScreen = new GameScreen(game);
 							setScreen(gameScreen);
+						}
+					});
+					
+					resumeDown.addListener(new ClickListener(){
+						@Override
+						public void clicked(InputEvent event, float x, float y)
+						{
+							gameOverWindow.remove();
+							title.remove();
+							SCORE.remove();
+							HSCORE.remove();
+							restartDown.remove();
+							restart.remove();
+							resumeDown.remove();
+							resume.remove();
+							homeDown.remove();
+							home.remove();
+
+							gameOver.addActor(pauseDown);
+							gameOver.addActor(pause);
+
+							isGameOver = false;
+							paused = false;
+
+							if(SOUND.isChecked())
+							{
+								planeSoundId = planeSound.loop();
+								rocketSoundId = rocketSound.loop();
+								planeSoundIntenseId = planeSoundIntense.loop();
+							}
 						}
 					});
 					
@@ -1932,7 +1986,6 @@ public class MainGame extends Game {
 										}, 1f);
 									}
 									nSpeed = 0;
-									omegaMax = 0;
 									if(petIndex>0)
 										((AnimatedSprite)pet).animation = petIdleAnim;
 								}
@@ -2119,32 +2172,9 @@ public class MainGame extends Game {
 			
 				if(needle.getX()-noodle.getX()>backgrounds[0][0].getWidth()*1.5f)
 				{
-										nSpeed = 0;
-										omegaMax = 0;
-										if(SOUND.isChecked())
-										{
-											planeSound.stop();
-											planeSoundIntense.stop();
-											rocketSound.stop();
-										}
-										isGameOver = true;if(!(petRunAnim==null) && pet.getY()==pet.getHeight()/2)((AnimatedSprite)pet).animation = petIdleAnim;
-										SCORE.setText("Score : "+String.valueOf((int)(score+dScore))+"\n");
-										HSCORE.setText(HScore>0?"Server Highest : "+String.valueOf(serverHighest)+"\n" : "");
-										if((int)(score+dScore)>HScore)
-										{
-											HScore = (int)(score+dScore);
-											updateScore(username, HScore);
-										}
-										
-										gameOverWindow.setPosition(screenViewport.getCamera().position.x-windowNoTitleSize/2, windowNoTitleSize*25/100/2);
-										title.setPosition(gameOverWindow.getX()+windowNoTitleSize/2-title.getWidth()/2, gameOverWindow.getY()+windowNoTitleSize-windowNoTitlePadding-title.getHeight());
-										restartDown.setPosition(gameOverWindow.getX()+windowNoTitlePadding, gameOverWindow.getY()+windowNoTitlePadding);
-										restart.setPosition(gameOverWindow.getX()+windowNoTitlePadding, gameOverWindow.getY()+windowNoTitlePadding);
-										homeDown.setPosition(gameOverWindow.getX()+windowNoTitleSize-buttonImageWidth-windowNoTitlePadding, gameOverWindow.getY()+windowNoTitlePadding);
-										home.setPosition(gameOverWindow.getX()+windowNoTitleSize-buttonImageWidth-windowNoTitlePadding, gameOverWindow.getY()+windowNoTitlePadding);
-										HSCORE.setPosition(gameOverWindow.getX()+windowNoTitleSize/2-HSCORE.getWidth()/2, gameOverWindow.getY()+windowNoTitlePadding+restartDown.getHeight());
-										SCORE.setPosition(gameOverWindow.getX()+windowNoTitleSize/2-SCORE.getWidth()/2, gameOverWindow.getY()+windowNoTitlePadding+restartDown.getHeight()+HSCORE.getHeight());
-										Gdx.input.setInputProcessor(gameOver);
+					nSpeed = 0;
+					isGameOver = true;
+					showGameOver();
 				}
 				
 				if(nSpeed*neSpeed > 0 && !boosted)
@@ -2155,6 +2185,10 @@ public class MainGame extends Game {
 				if(petIndex>0 && ((AnimatedSprite)pet).animation==petRunAnim && pet.getY()==pet.getHeight()/2)
 					((AnimatedSprite)pet).animation.setFrameDuration(0.017f/(nSpeed/((10f*Gdx.graphics.getHeight())/1080f)));
 			}
+
+			
+			pauseDown.setPosition(screenViewport.getCamera().position.x+Gdx.graphics.getWidth()/2-pauseDown.getWidth(), Gdx.graphics.getHeight()-pauseDown.getHeight());
+			pause.setPosition(pauseDown.getX(), pauseDown.getY());
 			meter.setPosition(screenViewport.getCamera().position.x+Gdx.graphics.getWidth()/2-meter.getWidth(), 0);
 			
 			stage.act(Gdx.graphics.getDeltaTime());
@@ -2187,8 +2221,7 @@ public class MainGame extends Game {
 			joystix.draw(spriteBatch, " HI "+String.valueOf(HScore)+" "+String.valueOf((int)score+dScore), screenViewport.getCamera().position.x-Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight()-HILayout.height);
 			meter.draw(spriteBatch);
 			spriteBatch.end();
-			if(isGameOver)
-				gameOver.draw();
+			gameOver.draw();
 				
 			/*shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
 			shapeRenderer.setColor(Color.RED);
@@ -2307,32 +2340,10 @@ public class MainGame extends Game {
 											if(Intersector.overlapConvexPolygons(nBounds, petBounds) && !isGameOver)
 											{
 												nSpeed = 0;
-												omegaMax = 0;
-															if(SOUND.isChecked())
-															{
-																planeSound.stop();
-																planeSoundIntense.stop();
-																rocketSound.stop();
-																assetManager.get("bite.mp3", Sound.class).play();
-															}
+												if(SOUND.isChecked())
+													assetManager.get("bite.mp3", Sound.class).play();
 												isGameOver = true;
-															SCORE.setText("Score : "+String.valueOf((int)(score+dScore))+"\n");
-															HSCORE.setText(HScore>0?"Server Highest : "+String.valueOf(serverHighest)+"\n" : "");
-									if((int)(score+dScore)>HScore)
-									{
-										HScore = (int)(score+dScore);
-										updateScore(username, HScore);
-									}
-															
-												gameOverWindow.setPosition(screenViewport.getCamera().position.x-windowNoTitleSize/2, windowNoTitleSize*25/100/2);
-															title.setPosition(gameOverWindow.getX()+windowNoTitleSize/2-title.getWidth()/2, gameOverWindow.getY()+windowNoTitleSize-windowNoTitlePadding-title.getHeight());
-												restartDown.setPosition(gameOverWindow.getX()+windowNoTitlePadding, gameOverWindow.getY()+windowNoTitlePadding);
-												restart.setPosition(gameOverWindow.getX()+windowNoTitlePadding, gameOverWindow.getY()+windowNoTitlePadding);
-												homeDown.setPosition(gameOverWindow.getX()+windowNoTitleSize-buttonImageWidth-windowNoTitlePadding, gameOverWindow.getY()+windowNoTitlePadding);
-												home.setPosition(gameOverWindow.getX()+windowNoTitleSize-buttonImageWidth-windowNoTitlePadding, gameOverWindow.getY()+windowNoTitlePadding);
-															HSCORE.setPosition(gameOverWindow.getX()+windowNoTitleSize/2-HSCORE.getWidth()/2, gameOverWindow.getY()+windowNoTitlePadding+restartDown.getHeight());
-															SCORE.setPosition(gameOverWindow.getX()+windowNoTitleSize/2-SCORE.getWidth()/2, gameOverWindow.getY()+windowNoTitlePadding+restartDown.getHeight()+HSCORE.getHeight());
-															Gdx.input.setInputProcessor(gameOver);
+												showGameOver();
 											}
 											frame++;
 											if(frame>=88)
@@ -2374,63 +2385,57 @@ public class MainGame extends Game {
 				dScore = (int)(((float)noodle.getX()/(float)backgrounds[0][0].getWidth())*10);
 			}
 		}
+
+		private void showGameOver()
+		{
+			if(SOUND.isChecked())
+			{
+				planeSound.stop();
+				planeSoundIntense.stop();
+				rocketSound.stop();
+			}
+			title.setText((paused? "    PAUSED" : "GAME OVER!")+"\n");
+			if(!(petRunAnim==null) && pet.getY()==pet.getHeight()/2)((AnimatedSprite)pet).animation = petIdleAnim;
+			
+			SCORE.setText("Score : "+String.valueOf((int)(score+dScore))+"\n\n");
+			HSCORE.setText(/*HScore>0?"Server Highest : "+String.valueOf(serverHighest)+"\n" : */"");
+			if((int)(score+dScore)>HScore)
+			{
+				HScore = (int)(score+dScore);
+				updateScore(username, HScore);
+			}
+			
+			gameOverWindow.setPosition(screenViewport.getCamera().position.x-windowNoTitleSize/2, windowNoTitleSize*25/100/2);
+			title.setPosition(gameOverWindow.getX()+windowNoTitleSize/2-title.getWidth()/2, gameOverWindow.getY()+windowNoTitleSize-windowNoTitlePadding-title.getHeight());
+			restartDown.setPosition(gameOverWindow.getX()+windowNoTitlePadding, gameOverWindow.getY()+windowNoTitlePadding);
+			restart.setPosition(restartDown.getX(), restartDown.getY());
+			homeDown.setPosition(gameOverWindow.getX()+windowNoTitleSize-buttonImageWidth-windowNoTitlePadding, restartDown.getY());
+			home.setPosition(homeDown.getX(), homeDown.getY());
+			resumeDown.setPosition((restartDown.getX()+homeDown.getX())/2, restartDown.getY());
+			resume.setPosition(resumeDown.getX(), resumeDown.getY());
+			HSCORE.setPosition(gameOverWindow.getX()+windowNoTitleSize/2-HSCORE.getWidth()/2, gameOverWindow.getY()+windowNoTitlePadding+restartDown.getHeight());
+			SCORE.setPosition(gameOverWindow.getX()+windowNoTitleSize/2-SCORE.getWidth()/2, gameOverWindow.getY()+windowNoTitlePadding+restartDown.getHeight()+HSCORE.getHeight());
+
+			gameOver.addActor(gameOverWindow);
+			gameOver.addActor(title);
+			gameOver.addActor(SCORE);
+			gameOver.addActor(HSCORE);
+			gameOver.addActor(restartDown);
+			gameOver.addActor(restart);
+			if(paused)
+			{
+				gameOver.addActor(resumeDown);
+				gameOver.addActor(resume);
+			}
+			gameOver.addActor(homeDown);
+			gameOver.addActor(home);
+
+			pause.remove();
+			pauseDown.remove();
+		}
 		
 		public void show (){
-			Gdx.input.setInputProcessor(new InputProcessor(){
-							/** Called when a key was pressed
-				 * 
-				 * @param keycode one of the constants in {@link Input.Keys}
-				 * @return whether the input was processed */
-				public boolean keyDown (int keycode){return true;}
-
-				/** Called when a key was released
-				 * 
-				 * @param keycode one of the constants in {@link Input.Keys}
-				 * @return whether the input was processed */
-				public boolean keyUp (int keycode){return true;}
-
-				/** Called when a key was typed
-				 * 
-				 * @param character The character
-				 * @return whether the input was processed */
-				public boolean keyTyped (char character){return true;}
-
-				/** Called when the screen was touched or a mouse button was pressed. The button parameter will be {@link Buttons#LEFT} on iOS.
-				 * @param screenX The x coordinate, origin is in the upper left corner
-				 * @param screenY The y coordinate, origin is in the upper left corner
-				 * @param pointer the pointer for the event.
-				 * @param button the button
-				 * @return whether the input was processed */
-				public boolean touchDown (int screenX, int screenY, int pointer, int button){return true;}
-
-				/** Called when a finger was lifted or a mouse button was released. The button parameter will be {@link Buttons#LEFT} on iOS.
-				 * @param pointer the pointer for the event.
-				 * @param button the button
-				 * @return whether the input was processed */
-				public boolean touchUp (int screenX, int screenY, int pointer, int button){return true;}
-
-				/** Called when the touch gesture is cancelled. Reason may be from OS interruption to touch becoming a large surface such as
-				 * the user cheek). Relevant on Android and iOS only. The button parameter will be {@link Buttons#LEFT} on iOS.
-				 * @param pointer the pointer for the event.
-				 * @param button the button
-				 * @return whether the input was processed */
-				public boolean touchCancelled (int screenX, int screenY, int pointer, int button){return true;}
-
-				/** Called when a finger or the mouse was dragged.
-				 * @param pointer the pointer for the event.
-				 * @return whether the input was processed */
-				public boolean touchDragged (int screenX, int screenY, int pointer){return true;}
-
-				/** Called when the mouse was moved without any buttons being pressed. Will not be called on iOS.
-				 * @return whether the input was processed */
-				public boolean mouseMoved (int screenX, int screenY){return true;}
-
-				/** Called when the mouse wheel was scrolled. Will not be called on iOS.
-				 * @param amountX the horizontal scroll amount, negative or positive depending on the direction the wheel was scrolled.
-				 * @param amountY the vertical scroll amount, negative or positive depending on the direction the wheel was scrolled.
-				 * @return whether the input was processed. */
-				public boolean scrolled (float amountX, float amountY){return true;}
-			});
+			Gdx.input.setInputProcessor(gameOver);
 		
 			isGameOver = false;
 			score = 0;
